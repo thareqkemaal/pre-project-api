@@ -1,4 +1,5 @@
 const mysql = require('mysql');
+const util = require('util');
 
 const dbConf = mysql.createPool({
     host: process.env.DB_HOST,
@@ -7,4 +8,6 @@ const dbConf = mysql.createPool({
     database: process.env.DB_NAME
 });
 
-module.exports = { dbConf }
+const dbQuery = util.promisify(dbConf.query).bind(dbConf);
+
+module.exports = { dbConf, dbQuery }

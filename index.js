@@ -4,9 +4,12 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT;
 const cors = require('cors');
+const bearerToken = require('express-bearer-token');
 
 app.use(express.json());
 app.use(cors());
+app.use(express.static('public'));
+app.use(bearerToken());
 
 app.get('/', (req, res) =>{
     res.status(200).send('<h1>GAZEBO API</h1>')
@@ -21,7 +24,10 @@ dbConf.getConnection((error, connection) => {
     console.log(`Connect ✅ : ${connection.threadId}`)
 });
 
-
-
+// CONFIG ROUTERS
+const { authRouter } = require('./routers');
+const { postRouter } = require('./routers');
+app.use('/auth', authRouter);
+app.use('/post', postRouter);
 
 app.listen(PORT, () => console.log(`Running API at ${PORT} ✅`));

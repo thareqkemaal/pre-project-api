@@ -1,11 +1,18 @@
 const express = require('express');
+const { readToken } = require('../config/encrypt');
+const { uploader } = require('../config/uploader');
 const { authController } = require('../controllers')
 const route = express.Router();
 
-route.get('/', authController.getData);
+const profileUploader = uploader('/profilePic', 'userimage').array('user_profileimage', 1)
+
+route.get('/users', authController.getData);
 route.post('/login', authController.login);
 route.post('/register', authController.register);
-// route.get('/keep', authController.keepLogin);
+route.patch('/keep', readToken, authController.keepLogin);
+route.patch('/edit', profileUploader, readToken, authController.editProfile);
+route.patch('/verify', readToken, authController.getVerify);
+route.patch('/resend', readToken, authController.resendEmail);
 
 
 module.exports = route;
