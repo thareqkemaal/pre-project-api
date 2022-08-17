@@ -9,6 +9,8 @@ const postUploader = uploader('/asset', 'postimage').array('post_image', 1);
 //route post
 route.get('/', postController.getData);
 route.get('/detail/:id', postController.getSpecPost);
+route.get('/ownpost', readToken, postController.ownPost);
+route.get('/likedpost', readToken, postController.likedPost);
 route.post('/add', postUploader, postController.addPost);
 route.patch('/editcaption/:idpost', postController.editCaption);
 route.delete('/delete/:id', postController.deletePost);

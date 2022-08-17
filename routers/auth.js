@@ -13,6 +13,8 @@ route.patch('/keep', readToken, authController.keepLogin);
 route.patch('/edit', profileUploader, readToken, authController.editProfile);
 route.patch('/verify', readToken, authController.getVerify);
 route.patch('/resend', readToken, authController.resendEmail);
+route.post('/forgot', authController.forgotPass);
+route.patch('/updatepass', readToken, authController.updatePass);
 
 
 module.exports = route;
