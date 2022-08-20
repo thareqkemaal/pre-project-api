@@ -8,7 +8,8 @@ module.exports = {
             if (req.query) {
                 let result = await dbQuery(`SELECT p.idpost, p.post_user_id, p.post_username, p.post_image, p.post_caption, p.post_created, count(idlike) as totalLike, u.user_profileimage 
             FROM dbgazebo.post p LEFT JOIN dbgazebo.likes l ON p.idpost = l.post_id 
-            LEFT JOIN dbgazebo.users u ON p.post_user_id = u.idusers GROUP BY idpost LIMIT ${parseInt(req.query.limit)} OFFSET ${parseInt(req.query.offset)};`);
+            LEFT JOIN dbgazebo.users u ON p.post_user_id = u.idusers GROUP BY p.idpost ORDER BY p.idpost DESC
+            LIMIT ${parseInt(req.query.limit)} OFFSET ${parseInt(req.query.offset)};`);
 
                 if (result.length > 0) {
                     let comp = result.map(async (val, idx) => {
@@ -239,7 +240,7 @@ module.exports = {
         try {
             let sqlGet = await dbQuery(`SELECT c.*, u.user_profileimage FROM dbgazebo.comments c 
                 LEFT JOIN dbgazebo.users u ON u.idusers = c.comment_user_id 
-                WHERE c.post_id = ${dbConf.escape(req.params.idpost)} LIMIT ${parseInt(req.query.limit)} OFFSET ${parseInt(req.query.offset)};`);
+                WHERE c.post_id = ${dbConf.escape(req.params.idpost)} ORDER BY c.idcomment DESC LIMIT ${parseInt(req.query.limit)} OFFSET ${parseInt(req.query.offset)};`);
             //console.table(sqlGet);
             res.status(200).send(sqlGet)
         } catch (error) {
