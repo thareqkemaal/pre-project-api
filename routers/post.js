@@ -14,6 +14,7 @@ route.get('/likedpost', readToken, postController.likedPost);
 route.post('/add', postUploader, postController.addPost);
 route.patch('/editcaption/:idpost', postController.editCaption);
 route.delete('/delete/:id', postController.deletePost);
+route.get('/countdata', postController.countData);
 
 //route like
 route.get('/like/:id', postController.getLikeData);
@@ -24,5 +25,6 @@ route.delete('/deletelike/:idpost', readToken, postController.deleteLike);
 //route comment
 route.get('/comment/:idpost', postController.getCommentData);
 route.post('/addcomment', readToken, postController.addComment);
+route.get('/countcomment/:idpost', postController.countComm);
 
 module.exports = route;

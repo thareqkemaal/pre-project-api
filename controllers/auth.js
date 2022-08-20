@@ -96,17 +96,22 @@ module.exports = {
             //console.log(data);
 
             if (data.idusers) {
-                delete data.iat;
-                delete data.exp;
-                delete data.verifToken;
-                delete data.passToken;
 
                 await dbQuery(`UPDATE dbgazebo.users SET verifToken = null WHERE idusers = ${dbConf.escape(data.idusers)};`);
+                await dbQuery(`UPDATE dbgazebo.users SET passToken = null WHERE idusers = ${dbConf.escape(data.idusers)};`);
+                let getSql = await dbQuery(`SELECT * FROM dbgazebo.users WHERE idusers = ${dbConf.escape(data.idusers)};`);
 
-                let token = createToken({ ...data }, '15m');
+                // console.log(getSql[0]);
 
-                console.log('token', token);
-                console.log('data', data);
+                delete getSql[0].verifToken;
+                delete getSql[0].passToken;
+
+                console.log(getSql[0]);
+
+                let token = createToken({ ...getSql[0] }, '15m');
+
+                //console.log('token', token);
+                //console.log('data', data);
 
                 let oldTime = new Date();
                 let newTime = new Date(oldTime.getTime() + 15 * 60000);
@@ -193,7 +198,7 @@ module.exports = {
     editProfile: async (req, res) => {
         try {
             //console.log('data token',req.dataToken);
-            console.log('reqbody',req.body);
+            console.log('reqbody', req.body);
             //console.log('req file', req.files);
 
             let data = JSON.parse(req.body.editprofile);
@@ -218,7 +223,7 @@ module.exports = {
                 await dbQuery(`UPDATE dbgazebo.comments SET comment_username = ${dbConf.escape(data.username)} WHERE comment_user_id = ${req.dataToken.idusers};`);
 
                 let getPic = await dbQuery(`SELECT user_profileimage FROM dbgazebo.users WHERE idusers = ${req.dataToken.idusers};`);
-                
+
                 console.log(getPic[0].user_profileimage)
                 res.status(200).send({
                     success: true,
@@ -239,7 +244,7 @@ module.exports = {
                 await dbQuery(`UPDATE dbgazebo.post SET post_username = ${dbConf.escape(data.username)} WHERE post_user_id = ${req.dataToken.idusers};`);
                 await dbQuery(`UPDATE dbgazebo.likes SET like_username = ${dbConf.escape(data.username)} WHERE like_user_id = ${req.dataToken.idusers};`);
                 await dbQuery(`UPDATE dbgazebo.comments SET comment_username = ${dbConf.escape(data.username)} WHERE comment_user_id = ${req.dataToken.idusers};`);
-              
+
                 res.status(200).send({
                     success: true,
                     message: "Profile Updated"
@@ -255,44 +260,52 @@ module.exports = {
 
     forgotPass: async (req, res) => {
         try {
-            // console.log(req.body);
+            //console.log(req.body);
 
             let temp = [];
             for (let prop in req.body) {
                 //console.log(prop, req.body[prop])
                 temp.push(`${prop} = ${dbConf.escape(req.body[prop])}`);
             };
+            //console.log(temp);
 
-            let findSql = await dbQuery(`SELECT * FROM dbgazebo.users WHERE ${temp}`);
+            await dbQuery(`UPDATE dbgazebo.users SET passToken = null WHERE ${temp};`);
+            await dbQuery(`UPDATE dbgazebo.users SET verifToken = null WHERE ${temp};`);
+            let getSql = await dbQuery(`SELECT * FROM dbgazebo.users WHERE ${temp};`);
 
-            if (findSql.length > 0){
+            //console.log(getSql[0]);
 
-                await dbQuery(`UPDATE dbgazebo.users SET passToken = null WHERE idusers = ${dbConf.escape(findSql[0].idusers)};`);
+            delete getSql[0].verifToken;
+            delete getSql[0].passToken;
 
-                let token = createToken({ ...findSql[0] }, '15m');
+            //console.log(getSql[0]);
 
+            if (getSql.length > 0) {
+
+                let token = createToken({ ...getSql[0] }, '15m');
+                
                 let oldTime = new Date();
                 let newTime = new Date(oldTime.getTime() + 15 * 60000);
-
+                
                 await transport.sendMail({
                     from: 'ADMIN @GAZEBO',
-                    to: findSql[0].email,
+                    to: getSql[0].email,
                     subject: 'Reset Password',
                     html: `
                     <div style="text-align:center">
-                        <h2 style="color: #006442">Reset Password</h2>
-                        </br>
-                        <h4 style="color: #231f20, ">A request has been recieved to change the password for your <span style="color: #006442; font-weight: 600">Gazebo</span> account</h4>
-                        <a href="http://localhost:3000/resetpass/${token}"
-                            style="padding: 10px; color: #eee8da; background-color: #006442; font-weight: 600; border-radius:  10px; border: none; text-decoration: none;"
-                        >Reset Password</a>
-                        <h5>Link Expired at ${newTime.toLocaleString()}</h5>
-                        </br>
-                        <h4>Thank You.</h4>
-                        <h2 style="color: #006442">The Gazebo Team</h2>
+                    <h2 style="color: #006442">Reset Password</h2>
+                    </br>
+                    <h4 style="color: #231f20, ">A request has been recieved to change the password for your <span style="color: #006442; font-weight: 600">Gazebo</span> account</h4>
+                    <a href="http://localhost:3000/resetpass/${token}"
+                    style="padding: 10px; color: #eee8da; background-color: #006442; font-weight: 600; border-radius:  10px; border: none; text-decoration: none;"
+                    >Reset Password</a>
+                    <h5>Link Expired at ${newTime.toLocaleString()}</h5>
+                    </br>
+                    <h4>Thank You.</h4>
+                    <h2 style="color: #006442">The Gazebo Team</h2>
                     </div>`
                 });
-
+                
                 await dbQuery(`UPDATE dbgazebo.users SET passToken = ${dbConf.escape(token)} WHERE ${temp};`);
 
                 res.status(200).send({
@@ -310,9 +323,9 @@ module.exports = {
         try {
             console.log(req.body);
             let data = req.dataToken;
-            
+
             await dbQuery(`UPDATE dbgazebo.users SET password = ${dbConf.escape(hashPassword(req.body.password))} WHERE idusers = ${dbConf.escape(data.idusers)};`);
-            
+
             res.status(200).send({
                 success: true,
                 message: "Password has been Updated ✅"
