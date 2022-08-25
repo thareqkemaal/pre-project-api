@@ -17,6 +17,7 @@ module.exports = {
 
         jwt.verify(req.token, 'gazebo123', (err, decode) => {
             if (err) {
+                console.log("error token", err)
                 return res.status(401).send({
                     message: "Authenticate Error/Token Invalid/Token Expire ❌"
                 });

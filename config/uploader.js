@@ -11,12 +11,12 @@ module.exports = {
                 const pathDir = directory ? deafultDir + directory : deafultDir;
 
                 if (fs.existsSync(pathDir)){
-                    console.log("pathDir Exist✅");
+                    // console.log("pathDir Exist✅");
                     cb(null, pathDir);
                 } else {
                     fs.mkdir(pathDir, {recursive: true}, (error) =>{
                         if (error){
-                            console.log("mkdir error", error);
+                            // console.log("mkdir error", error);
                         } else {
                             return cb(error, pathDir)
                         }

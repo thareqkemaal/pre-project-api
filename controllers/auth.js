@@ -15,7 +15,7 @@ module.exports = {
             res.status(200).send(result);
 
         } catch (error) {
-            console.log("Error GET dbgazebo.users data SQL", error);
+            // console.log("Error GET dbgazebo.users data SQL", error);
             res.status(500).send(error);
         };
     },
@@ -65,7 +65,7 @@ module.exports = {
                 });
             }
         } catch (error) {
-            console.log("Error Query SQL", error);
+            // console.log("Error Query SQL", error);
             res.status(500).send(error);
         }
 
@@ -84,7 +84,7 @@ module.exports = {
                 })
             }
         } catch (error) {
-            console.log(error)
+            // console.log(error)
             res.status(500).send(error)
         }
     },
@@ -106,7 +106,7 @@ module.exports = {
                 delete getSql[0].verifToken;
                 delete getSql[0].passToken;
 
-                console.log(getSql[0]);
+                // console.log(getSql[0]);
 
                 let token = createToken({ ...getSql[0] }, '15m');
 
@@ -143,7 +143,7 @@ module.exports = {
                 });
             }
         } catch (error) {
-            console.log(error)
+            // console.log(error)
             res.status(500).send(error)
         }
     },
@@ -152,7 +152,7 @@ module.exports = {
         try {
             const filter = [];
             for (const prop in req.body) {
-                console.log(prop, req.body[prop]);
+                // console.log(prop, req.body[prop]);
                 if (req.body[prop] != "" && prop != "password") {
                     filter.push(`${prop} = ${dbConf.escape((req.body[prop]))}`);
                 } else if (req.body[prop] != "" && prop == "password") {
@@ -173,7 +173,7 @@ module.exports = {
                 res.status(200).send({ ...sqlGet[0] });
             }
         } catch (error) {
-            console.log("login failed", error);
+            // console.log("login failed", error);
             res.status(500).send(error)
         };
     },
@@ -190,7 +190,7 @@ module.exports = {
             res.status(200).send({ ...result[0], token });
 
         } catch (error) {
-            console.log(error)
+            // console.log(error)
             res.status(500).send(error)
         }
     },
@@ -198,12 +198,12 @@ module.exports = {
     editProfile: async (req, res) => {
         try {
             //console.log('data token',req.dataToken);
-            console.log('reqbody', req.body);
+            // console.log('reqbody', req.body);
             //console.log('req file', req.files);
 
             let data = JSON.parse(req.body.editprofile);
-            console.log(data)
-            console.log(data.username)
+            // console.log(data)
+            // console.log(data.username)
 
             if (req.files.length > 0) {
 
@@ -212,7 +212,7 @@ module.exports = {
                 filter.push(`user_profileimage = '/profilepic/${req.files[0].filename}'`);
 
                 for (const prop in data) {
-                    console.log(prop, data[prop])
+                    // console.log(prop, data[prop])
                     filter.push(`${prop} = ${dbConf.escape(data[prop])}`)
                 };
 
@@ -224,7 +224,7 @@ module.exports = {
 
                 let getPic = await dbQuery(`SELECT user_profileimage FROM dbgazebo.users WHERE idusers = ${req.dataToken.idusers};`);
 
-                console.log(getPic[0].user_profileimage)
+                // console.log(getPic[0].user_profileimage)
                 res.status(200).send({
                     success: true,
                     message: "Profile Updated",
@@ -236,7 +236,7 @@ module.exports = {
                 let filter = [];
 
                 for (const prop in data) {
-                    console.log(prop, data[prop])
+                    // console.log(prop, data[prop])
                     filter.push(`${prop} = ${dbConf.escape(data[prop])}`)
                 };
 
@@ -253,7 +253,7 @@ module.exports = {
             }
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             res.status(500).send(error);
         }
     },
@@ -321,7 +321,7 @@ module.exports = {
 
     updatePass: async (req, res) => {
         try {
-            console.log(req.body);
+            // console.log(req.body);
             let data = req.dataToken;
 
             await dbQuery(`UPDATE dbgazebo.users SET password = ${dbConf.escape(hashPassword(req.body.password))} WHERE idusers = ${dbConf.escape(data.idusers)};`);

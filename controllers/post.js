@@ -3,13 +3,38 @@ const { dbConf, dbQuery } = require('../config/db');
 module.exports = {
     getData: async (req, res) => {
         try {
-            console.log(req.query);
+            console.log("req.params", req.params)
+
+            let result = await dbQuery(`SELECT p.idpost, p.post_user_id, p.post_username, p.post_image, p.post_caption, p.post_created, count(idlike) as totalLike, u.user_profileimage 
+            FROM dbgazebo.post p LEFT JOIN dbgazebo.likes l ON p.idpost = l.post_id 
+            LEFT JOIN dbgazebo.users u ON p.post_user_id = u.idusers GROUP BY p.idpost ORDER BY p.idpost DESC
+            LIMIT ${parseInt(req.params.limit)} OFFSET ${parseInt(req.params.offset)};`);
+
+            if (result.length > 0) {
+                let comp = result.map(async (val, idx) => {
+                    let resultLike = await dbQuery(`SELECT idlike, like_user_id, like_username, like_created FROM dbgazebo.likes WHERE post_id = ${dbConf.escape(val.idpost)}`);
+                    let resultComment = await dbQuery(`SELECT idcomment, comment_user_id, comment_username, comment_created FROM dbgazebo.comments WHERE post_id = ${dbConf.escape(val.idpost)}`);
+                    return { ...val, like: resultLike, comment: resultComment };
+                });
+                const resultsComp = await Promise.all(comp);
+                //console.log("get post data",resultsComp);
+                res.status(200).send(resultsComp);
+            };
+        } catch (error) {
+            console.log("error getData Post", error)
+            res.status(500).send(error);
+        }
+    },
+
+    moreData: async (req, res) => {
+        try {
+            console.log("req.params getDataPost", req.params)
 
             if (req.query) {
                 let result = await dbQuery(`SELECT p.idpost, p.post_user_id, p.post_username, p.post_image, p.post_caption, p.post_created, count(idlike) as totalLike, u.user_profileimage 
             FROM dbgazebo.post p LEFT JOIN dbgazebo.likes l ON p.idpost = l.post_id 
             LEFT JOIN dbgazebo.users u ON p.post_user_id = u.idusers GROUP BY p.idpost ORDER BY p.idpost DESC
-            LIMIT ${parseInt(req.query.limit)} OFFSET ${parseInt(req.query.offset)};`);
+            LIMIT ${parseInt(req.params.limit)} OFFSET ${parseInt(req.params.offset)};`);
 
                 if (result.length > 0) {
                     let comp = result.map(async (val, idx) => {
@@ -18,31 +43,20 @@ module.exports = {
                         return { ...val, like: resultLike, comment: resultComment };
                     });
                     const resultsComp = await Promise.all(comp);
-                    res.status(200).send(resultsComp);
-                };
-            } else {
-                let result = await dbQuery(`SELECT p.idpost, p.post_user_id, p.post_username, p.post_image, p.post_caption, p.post_created, count(idlike) as totalLike, u.user_profileimage 
-                FROM dbgazebo.post p LEFT JOIN dbgazebo.likes l ON p.idpost = l.post_id 
-                LEFT JOIN dbgazebo.users u ON p.post_user_id = u.idusers GROUP BY idpost;`);
-
-                if (result.length > 0) {
-                    let comp = result.map(async (val, idx) => {
-                        let resultLike = await dbQuery(`SELECT idlike, like_user_id, like_username, like_created FROM dbgazebo.likes WHERE post_id = ${dbConf.escape(val.idpost)}`);
-                        let resultComment = await dbQuery(`SELECT idcomment, comment_user_id, comment_username, comment_created FROM dbgazebo.comments WHERE post_id = ${dbConf.escape(val.idpost)}`);
-                        return { ...val, like: resultLike, comment: resultComment };
-                    });
-                    const resultsComp = await Promise.all(comp);
+                    //console.log("get post data",resultsComp);
                     res.status(200).send(resultsComp);
                 };
             }
 
         } catch (error) {
+            console.log("error moreData Post", error)
             res.status(500).send(error);
         }
     },
 
     countData: async (req, res) => {
         try {
+
             let result = await dbQuery(`SELECT p.idpost, p.post_user_id, p.post_username, p.post_image, p.post_caption, p.post_created, count(idlike) as totalLike, u.user_profileimage 
                 FROM dbgazebo.post p LEFT JOIN dbgazebo.likes l ON p.idpost = l.post_id 
                 LEFT JOIN dbgazebo.users u ON p.post_user_id = u.idusers GROUP BY idpost;`);
@@ -54,22 +68,28 @@ module.exports = {
                     return { ...val, like: resultLike, comment: resultComment };
                 });
                 const resultsComp = await Promise.all(comp);
+                //console.log("resultsComp", resultsComp);
                 res.status(200).send(resultsComp);
             };
 
         } catch (error) {
+            console.log("error getData Count", error)
             res.status(500).send(error);
         }
     },
 
     getSpecPost: async (req, res) => {
         try {
-            //console.log(req.params);
+            console.log("req.params post", req.params);
 
             let sqlGet = await dbQuery(`SELECT * FROM dbgazebo.post WHERE idpost = ${dbConf.escape(req.params.id)};`);
 
-            res.status(200).send({ ...sqlGet[0] })
+            console.log("detail post", sqlGet[0])
+            //console.log({...sqlGet[0]})
+
+            res.status(200).send(sqlGet[0])
         } catch (error) {
+            console.log("error post detail", error)
             res.status(500).send(error)
         }
     },
@@ -99,6 +119,7 @@ module.exports = {
             });
 
         } catch (error) {
+            console.log("error addPost", error)
             res.status(500).send(error)
         }
     },
@@ -117,12 +138,14 @@ module.exports = {
                 res.status(200).send(resultsComp);
             };
         } catch (error) {
+            console.log("error ownPost", error)
             res.status(500).send(error)
         }
     },
 
     likedPost: async (req, res) => {
         try {
+            console.log("data token", req.dataToken)
             let sqlGet = await dbQuery(`SELECT p.* FROM dbgazebo.likes l LEFT JOIN dbgazebo.post p ON l.post_id = p.idpost WHERE l.like_user_id = ${dbConf.escape(req.dataToken.idusers)};`)
 
             if (sqlGet.length > 0) {
@@ -135,6 +158,7 @@ module.exports = {
                 res.status(200).send(resultsComp);
             };
         } catch (error) {
+            console.log("error get liked", error)
             res.status(500).send(error)
         }
     },
@@ -148,6 +172,7 @@ module.exports = {
                 message: "Caption Updated"
             })
         } catch (error) {
+            console.log("error editCaption", error)
             res.status(500).send(error)
         }
     },
@@ -163,7 +188,7 @@ module.exports = {
                 message: "Post Deleted"
             });
         } catch (error) {
-            // console.log(error)
+            console.log("error delete post", error)
             res.status(500).send(error);
         }
     },
@@ -174,7 +199,7 @@ module.exports = {
             let result = await dbQuery(`SELECT like_user_id, like_username FROM dbgazebo.likes WHERE post_id = ${dbConf.escape(req.params.id)};`);
             res.status(200).send(result);
         } catch (error) {
-            // console.log(error);
+            console.log("error getlikeddata", error);
             res.status(500).send(error);
         }
     },
@@ -188,6 +213,7 @@ module.exports = {
 
             res.status(200).send({ ...sqlGet[0] });
         } catch (error) {
+            console.log("error check like", error)
             res.status(500).send(error)
         }
     },
@@ -210,7 +236,7 @@ module.exports = {
                 liked: sqlGet
             })
         } catch (error) {
-            // console.log(error)
+            console.log("add like", error)
             res.status(500).send(error)
         }
     },
@@ -232,6 +258,7 @@ module.exports = {
                 liked: sqlGet
             })
         } catch (error) {
+            console.log("error delete like", error)
             res.status(500).send(error)
         }
     },
@@ -244,6 +271,7 @@ module.exports = {
             //console.table(sqlGet);
             res.status(200).send(sqlGet)
         } catch (error) {
+            console.log("error getcommentdata", error)
             res.status(500).send(error)
         }
     },
@@ -256,6 +284,7 @@ module.exports = {
             //console.table(sqlGet);
             res.status(200).send(sqlGet)
         } catch (error) {
+            console.log("error count comment", error)
             res.status(500).send(error)
         }
     },
@@ -273,6 +302,7 @@ module.exports = {
                 message: "Comment Added"
             })
         } catch (error) {
+            console.log("add comment", error)
             res.status(500).send(error)
         }
     }
