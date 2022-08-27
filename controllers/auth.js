@@ -119,10 +119,10 @@ module.exports = {
                 await transport.sendMail({
                     from: 'ADMIN @GAZEBO',
                     to: data.email,
-                    subject: 'Verification Email Account',
+                    subject: 'Re-send Email Verification Account',
                     html: `
                     <div style="text-align:center">
-                        <h2 style="color: #006442">Thanks for signing up for Gazebo!</h2>
+                        <h2 style="color: #006442">Re-send Email Verification</h2>
                         </br>
                         <h4 style="color: #231f20, ">We're happy you're here. Let's get your email address verified</h4>
                         <a href="http://localhost:3000/verification/${token}"

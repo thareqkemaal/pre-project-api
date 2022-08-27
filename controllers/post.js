@@ -3,7 +3,7 @@ const { dbConf, dbQuery } = require('../config/db');
 module.exports = {
     getData: async (req, res) => {
         try {
-            console.log("req.params", req.params)
+            //console.log("req.params", req.params)
 
             let result = await dbQuery(`SELECT p.idpost, p.post_user_id, p.post_username, p.post_image, p.post_caption, p.post_created, count(idlike) as totalLike, u.user_profileimage 
             FROM dbgazebo.post p LEFT JOIN dbgazebo.likes l ON p.idpost = l.post_id 
@@ -28,7 +28,7 @@ module.exports = {
 
     moreData: async (req, res) => {
         try {
-            console.log("req.params getDataPost", req.params)
+            console.log("req.params getMoreDataPost", req.params)
 
             if (req.query) {
                 let result = await dbQuery(`SELECT p.idpost, p.post_user_id, p.post_username, p.post_image, p.post_caption, p.post_created, count(idlike) as totalLike, u.user_profileimage 

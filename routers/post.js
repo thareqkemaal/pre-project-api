@@ -7,7 +7,7 @@ const route = express.Router();
 const postUploader = uploader('/asset', 'postimage').array('post_image', 1);
 
 //route post
-route.get('/:limit/:offset', postController.getData);
+route.get('/get/:limit/:offset', postController.getData);
 route.get('/more/:limit/:offset', postController.moreData);
 route.get('/detail/:id', postController.getSpecPost);
 route.get('/ownpost', readToken, postController.ownPost);
